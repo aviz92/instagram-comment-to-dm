@@ -1,0 +1,34 @@
+---
+description: Environment setup, package management, execution commands, and secrets configuration using uv and pyproject.toml.
+globs:
+  - "**/*.py"
+  - "**/pyproject.toml"
+  - "**/.env*"
+alwaysApply: false
+---
+
+# Python & Package Management
+- Target Python >= 3.12.
+- Use `uv` as the exclusive environment and dependency manager.
+- Never suggest raw `pip` or `python` commands.
+- Manage dependencies exclusively via `pyproject.toml`.
+- `uv sync` to install dependencies.
+- `uv add <package>` to add new ones.
+- Assume uv manages virtual environments automatically.
+
+# Execution Commands
+- Testing → `uv run pytest`
+- Running scripts → `uv run python script.py`
+- Running tools → `uv run <tool>`
+
+# Configuration & Secrets
+- Never hardcode secrets.
+- Use `.env` at project root.
+- Environment variables must be `UPPER_SNAKE_CASE`.
+- Assume environment loading is handled via `python-dotenv` or equivalent.
+
+# Dependency Management
+- Prefer pinned versions for production dependencies.
+- Use compatible ranges for stable libraries.
+- Respect existing index configuration in `pyproject.toml`.
+- Do not change dependency strategy unless requested.

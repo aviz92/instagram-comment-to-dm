@@ -1,0 +1,68 @@
+---
+description: Monitoring and observability rules — logging standards, metrics, health checks, alerting, and distributed tracing.
+globs:
+  - "**/*.py"
+  - "**/prometheus/**"
+  - "**/grafana/**"
+  - "**/k8s/**"
+  - "**/docker-compose*.yml"
+alwaysApply: false
+---
+
+# Scope Control
+- Apply rules **only** to monitoring and observability code you add or modify.
+- Do NOT restructure existing observability setup unless explicitly asked.
+
+# Logging
+- Use `custom-python-logger` — never the standard `logging` module directly.
+- Use structured logging (JSON) in production — parseable by log aggregation tools.
+- Use appropriate log levels consistently:
+  - `DEBUG` — detailed diagnostic info, development only
+  - `INFO` — normal application flow, key business events
+  - `WARNING` — unexpected but recoverable situations
+  - `ERROR` — failures that need attention, always include context
+  - `CRITICAL` — system is unusable, requires immediate action
+- Never log sensitive data — no passwords, tokens, or PII.
+- Always include context in error logs:
+  ```python
+  logger.error(f"Failed to process order {order_id!r}: {e}", exc_info=True)
+  ```
+
+# Health Checks
+- Every service must expose a `/health` endpoint:
+  - `/health/live` — is the process alive? (liveness)
+  - `/health/ready` — is the service ready to accept traffic? (readiness)
+- Liveness check: return `200` if the process is running.
+- Readiness check: verify DB connection, cache, and critical dependencies before returning `200`.
+- Never return `200` with an error body — use proper HTTP status codes.
+
+# Metrics
+- Expose metrics in Prometheus format at `/metrics`.
+- Follow Prometheus naming conventions: `<namespace>_<subsystem>_<name>_<unit>`:
+  ```
+  app_requests_total
+  app_request_duration_seconds
+  app_db_query_duration_seconds
+  ```
+- Track at minimum: request rate, error rate, latency (p50, p95, p99).
+- Use labels for dimensions — never create a new metric per dimension value.
+- Avoid high-cardinality labels (user IDs, request IDs).
+
+# Alerting
+- Alert on symptoms, not causes — alert on high error rate, not "CPU at 80%".
+- Every alert must have: severity, description, and a runbook link.
+- Avoid alert fatigue — tune thresholds before enabling alerts in production.
+- Severity levels:
+  - `critical` — page immediately, service is down or data loss risk
+  - `warning` — investigate soon, degradation detected
+  - `info` — awareness only, no action required
+
+# Distributed Tracing
+- Propagate trace context across service boundaries using standard headers (`traceparent`).
+- Add span attributes for key business context: `user_id`, `order_id`, `env`.
+- Never log trace IDs separately — include them in structured log fields for correlation.
+
+# Observability Principles
+- Design systems to be observable from the outside — metrics, logs, and traces are not optional.
+- Every new service must have health checks, metrics, and structured logging before going to production.
+- Retain logs for at minimum 30 days in staging, 90 days in production.

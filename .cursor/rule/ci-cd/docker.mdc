@@ -1,0 +1,99 @@
+---
+description: Docker and container rules — Dockerfile best practices, multi-stage builds, security, docker-compose, and Kubernetes conventions.
+globs:
+  - "**/Dockerfile*"
+  - "**/docker-compose*.yml"
+  - "**/docker-compose*.yaml"
+  - "**/.dockerignore"
+  - "**/k8s/**"
+  - "**/kubernetes/**"
+alwaysApply: false
+---
+
+# Scope Control
+- Apply rules **only** to container configuration you add or modify.
+- Do NOT restructure existing Dockerfiles or compose files unless explicitly asked.
+
+# Dockerfile
+
+## Base Images
+- Use minimal base images — prefer `python:3.12-slim` over `python:3.12`.
+- Always pin base image versions — never use `latest`:
+  ```dockerfile
+  # good
+  FROM python:3.12-slim
+
+  # bad
+  FROM python:latest
+  ```
+- Scan images for vulnerabilities before pushing to registry.
+
+## Multi-Stage Builds
+- Use multi-stage builds to keep final images small:
+  ```dockerfile
+  FROM python:3.12-slim AS builder
+  COPY pyproject.toml uv.lock ./
+  RUN pip install uv && uv sync --frozen
+
+  FROM python:3.12-slim AS runtime
+  COPY --from=builder /app/.venv /app/.venv
+  COPY ../aaa .
+  ```
+- Build stage: install dependencies and compile assets.
+- Runtime stage: copy only what's needed to run.
+
+## Layer Caching
+- Order instructions from least to most frequently changed — dependencies before source code:
+  ```dockerfile
+  # good — dependencies cached separately from source
+  COPY pyproject.toml uv.lock ./
+  RUN uv sync --frozen
+  COPY ../aaa .
+
+  # bad — cache busted on every source change
+  COPY ../aaa .
+  RUN uv sync --frozen
+  ```
+
+## Security
+- Never run containers as root — always define a non-root user:
+  ```dockerfile
+  RUN adduser --disabled-password appuser
+  USER appuser
+  ```
+- Never copy secrets into images — use environment variables or mounted secrets at runtime.
+- Always include a `.dockerignore` — exclude `.env`, `__pycache__`, `.git`, `tests/`.
+
+## Health Checks
+- Always define a `HEALTHCHECK` for long-running services:
+  ```dockerfile
+  HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+  ```
+
+## Logging
+- Output logs to `stdout`/`stderr` only — never write logs to files inside containers.
+
+# Docker Compose
+- Use `docker-compose.yml` for local development only — never for production.
+- Always define resource limits for services:
+  ```yaml
+  deploy:
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: 512M
+  ```
+- Use named volumes for persistent data — never bind-mount production data directories.
+- Load secrets via `.env` file — never hardcode in `docker-compose.yml`.
+
+# Image Tagging
+- Use semantic versioning for release images: `myapp:1.2.3`.
+- Tag with git SHA for traceability in CI: `myapp:abc1234`.
+- Never push `latest` as the only tag — always include a versioned tag.
+
+# Kubernetes
+- Define resource requests and limits for all containers.
+- Use `livenessProbe` and `readinessProbe` for all deployments.
+- Store secrets in Kubernetes Secrets or `python-vault` — never in ConfigMaps.
+- Use namespaces to isolate environments (staging, production).
