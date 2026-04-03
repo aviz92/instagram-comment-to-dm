@@ -177,6 +177,9 @@ cython_debug/
 logs/
 results_output/
 migrations/
+
+# IDEs and editors
 .cursor
 .vscode
 .claude
+CLAUDE.md
