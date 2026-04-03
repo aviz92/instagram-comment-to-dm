@@ -19,10 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 
-dependencies = [
-    # uv add --requirements requrequirements.txt
-    # uv add --requirements requirements_suggestion.txt
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/aviz92/xxxxx-project-name"

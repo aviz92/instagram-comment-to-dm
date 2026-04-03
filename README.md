@@ -37,7 +37,7 @@ This template provides a solid foundation for Python projects with:
 
 ### 🧹 Code Quality & Style
 - **Python-specific configurations**:
-  - `requirements.txt`: Core dependencies and development tools
+  - `pyproject.toml`: Core dependencies and development tools
   - `MANIFEST.in`: Package distribution configuration
   - `env.template`: Environment variables template
 - **`.gitignore`**: Preconfigured for Python, IDEs, and common tools
@@ -76,7 +76,7 @@ cp env.template .env
 ### 3. Customize for Your Project
 1. **Update project metadata**:
    - Edit `README.md` with your project details
-   - Update `requirements.txt` with your specific dependencies
+   - Update `pyproject.toml` with your specific dependencies
    - Modify `MANIFEST.in` for package distribution
 
 2. **Configure environment**:
@@ -135,7 +135,7 @@ When using this template for a new project:
 
 - [ ] Update README.md with project-specific information
 - [ ] Configure environment variables in .env
-- [ ] Update requirements.txt with project dependencies
+- [ ] Update pyproject.toml with project dependencies
 - [ ] Set up GitHub repository secrets for CI/CD
 - [ ] Configure package metadata in setup.py or pyproject.toml
 - [ ] Add project-specific tests
